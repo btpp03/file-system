@@ -198,6 +198,8 @@ app.get('/download/*', (req, res) => {
                 if (mimeTypes[ext]) {
                     res.setHeader('Content-Type', mimeTypes[ext]);
                 }
+                res.setHeader('Content-Disposition', 'inline');
+                res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
                 res.sendFile(filePath);
             } else {
                 res.download(filePath, path.basename(filePath), (err) => {
@@ -214,6 +216,51 @@ app.get('/download/*', (req, res) => {
         }
     } catch (error) {
         console.error('Download error:', error);
+        res.status(400).send(error.message);
+    }
+});
+
+
+// 在线预览：文本类文件包成 HTML 页面，任何浏览器都直接显示（不会弹下载）
+function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+app.get('/view/*', (req, res) => {
+    try {
+        const relativePath = sanitizePath(req.params[0]);
+        const filePath = path.join(FILES_DIR, relativePath);
+        if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+            return res.status(404).send('File not found');
+        }
+        const ext = path.extname(filePath).toLowerCase().slice(1);
+        const mediaExts = [
+            'jpg','jpeg','png','gif','bmp','webp','svg',
+            'mp4','webm','ogg','mov','m4v','avi',
+            'mp3','wav','aac','flac','m4a','pdf'
+        ];
+        const dlPath = '/download/' + relativePath.split('/').map(encodeURIComponent).join('/');
+        const noStore = 'no-store, no-cache, must-revalidate, max-age=0';
+        if (mediaExts.includes(ext)) {
+            return res.sendFile(filePath, { headers: { 'Content-Disposition': 'inline', 'Cache-Control': noStore } });
+        }
+        if (fs.statSync(filePath).size > 2 * 1024 * 1024) {
+            return res.redirect(302, dlPath);
+        }
+        const text = fs.readFileSync(filePath, 'utf8');
+        const name = path.basename(filePath);
+        res.setHeader('Cache-Control', noStore);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send('<!doctype html><html lang="zh"><head><meta charset="utf-8">' +
+            '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+            '<title>' + escapeHtml(name) + '</title><style>' +
+            'body{margin:0;background:#111;color:#e6e6e6;font:14px/1.55 Menlo,Consolas,monospace}' +
+            'header{position:sticky;top:0;background:#1c1c1e;padding:10px 14px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;font:600 15px/1.4 -apple-system,sans-serif}' +
+            'a{color:#4da3ff;font:400 13px/1.4 -apple-system,sans-serif;text-decoration:none}' +
+            'pre{margin:0;padding:14px;white-space:pre-wrap;word-break:break-word}' +
+            '</style></head><body><header><span>' + escapeHtml(name) + '</span><a href="' + dlPath + '">下载原件</a></header>' +
+            '<pre>' + escapeHtml(text) + '</pre></body></html>');
+    } catch (error) {
         res.status(400).send(error.message);
     }
 });
