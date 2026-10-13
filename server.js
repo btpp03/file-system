@@ -143,7 +143,7 @@ app.get('/api/files', (req, res) => {
                 isDirectory,
                 size: isDirectory ? '' : (stats.size / (1024 * 1024)).toFixed(2) + ' MB',
                 lastModified: stats.mtime,
-                downloadUrl: !isDirectory ? `${req.protocol}://${req.get('host')}/download/${encodeURIComponent(relativePath)}` : null
+                downloadUrl: !isDirectory ? `https://${req.get('host')}/download/${encodeURIComponent(relativePath)}` : null
             };
         });
         res.setHeader('Content-Type', 'application/json');
@@ -173,13 +173,26 @@ app.get('/download/*', (req, res) => {
                 'jpg','jpeg','png','gif','bmp','webp','svg',
                 'mp4','webm','ogg','mov','m4v','avi',
                 'mp3','wav','aac','flac','m4a',
-                'pdf'
+                'pdf',
+                'yaml','yml','txt','json','md','toml','conf','ini','csv','log','properties','env'
             ];
             const mimeTypes = {
                 jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', svg: 'image/svg+xml',
                 mp4: 'video/mp4', webm: 'video/webm', ogg: 'video/ogg', mov: 'video/quicktime', m4v: 'video/x-m4v', avi: 'video/x-msvideo',
                 mp3: 'audio/mpeg', wav: 'audio/wav', aac: 'audio/aac', flac: 'audio/flac', m4a: 'audio/mp4',
                 pdf: 'application/pdf'
+                yaml: 'text/plain; charset=utf-8',
+                yml: 'text/plain; charset=utf-8',
+                txt: 'text/plain; charset=utf-8',
+                json: 'text/plain; charset=utf-8',
+                md: 'text/plain; charset=utf-8',
+                toml: 'text/plain; charset=utf-8',
+                conf: 'text/plain; charset=utf-8',
+                ini: 'text/plain; charset=utf-8',
+                csv: 'text/plain; charset=utf-8',
+                log: 'text/plain; charset=utf-8',
+                properties: 'text/plain; charset=utf-8',
+                env: 'text/plain; charset=utf-8',
             };
             if (previewExts.includes(ext)) {
                 if (mimeTypes[ext]) {
@@ -214,7 +227,7 @@ app.post('/api/upload', authMiddleware, upload.single('file'), (req, res) => {
         message: '上传成功',
         file: filename,
         subdir: subdir || '根目录',
-        downloadUrl: `${req.protocol}://${req.get('host')}/download/${encodeURIComponent(relativePath)}`
+        downloadUrl: `https://${req.get('host')}/download/${encodeURIComponent(relativePath)}`
     });
 });
 
