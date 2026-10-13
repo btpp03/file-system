@@ -180,7 +180,7 @@ app.get('/download/*', (req, res) => {
                 jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', svg: 'image/svg+xml',
                 mp4: 'video/mp4', webm: 'video/webm', ogg: 'video/ogg', mov: 'video/quicktime', m4v: 'video/x-m4v', avi: 'video/x-msvideo',
                 mp3: 'audio/mpeg', wav: 'audio/wav', aac: 'audio/aac', flac: 'audio/flac', m4a: 'audio/mp4',
-                pdf: 'application/pdf'
+                pdf: 'application/pdf',
                 yaml: 'text/plain; charset=utf-8',
                 yml: 'text/plain; charset=utf-8',
                 txt: 'text/plain; charset=utf-8',
